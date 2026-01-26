@@ -252,7 +252,9 @@ PROXY_SETUP() {
         print_info "Menyiapkan dependensi untuk Ubuntu..."
 
         apt-get install haproxy -y
+        apt install haproxy -y
         apt-get install nginx -y
+        apt install nginx -y
         systemctl stop haproxy
         systemctl stop nginx
 
@@ -263,7 +265,7 @@ PROXY_SETUP() {
         print_info "Deteksi OS: $OS_NAME"
         print_info "Menyiapkan dependensi untuk Debian..."
 
-        apt install haproxy -y
+        apt install haproxy -y        
         apt install nginx -y        
         systemctl stop haproxy
         systemctl stop nginx
