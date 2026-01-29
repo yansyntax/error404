@@ -1,20 +1,10 @@
 {
   "listen": ":5667",
-
-  "cert": "/etc/zivpn/zivpn.crt",
-  "key": "/etc/zivpn/zivpn.key",
-
-  "obfs": "zivpn",
-
-  "max_clients": 40,
-  "handshake_timeout": 10,
-  "idle_timeout": 60,
-  "keepalive": 15,
-
-  "auth": {
-    "mode": "passwords",
-    "config": [
-      "yan"
-    ]
+   "cert": "/etc/zivpn/zivpn.crt",
+   "key": "/etc/zivpn/zivpn.key",
+   "obfs":"zivpn",
+   "auth": {
+    "mode": "passwords", 
+    "config": ["zi"]
   }
 }

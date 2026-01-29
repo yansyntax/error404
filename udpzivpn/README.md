@@ -1,31 +1,132 @@
-![ZIVPN](zivpn.png)
 
-UDP server installation for ZIVPN Tunnel (SSH/DNS/UDP) VPN app.
-<br>
+<p align="center">
+  <img src="zivpn.png" width="420">
+</p>
 
->Server binary for Linux amd64 and arm.
+<h1 align="center">🚀 ZiVPN UDP Server</h1>
 
-#### Installation AMD
+UDP server installation for **ZiVPN Tunnel (UDP)** VPN application.
+
+Server binary available for **Linux amd64**, **arm**, and **arm64** with automatic architecture detection.
+
+---
+
+## 🧠 Features
+- Auto detect VPS architecture (amd64 / arm / arm64)  
+- Auto download & install latest UDP binary  
+- Auto setup **systemd service** 
+- Auto configure **UFW firewall** & NAT  
+- Auto apply default "zi" config  
+- Support for **Debian / Ubuntu** (minimal OS)  
+- Optional Dual SC or ZiVPN Only mode menu  
+- Auto alias command `menu` for `/usr/local/bin/zivpn-manager`  
+
+---
+
+## 📦 Installation Menu
+
+```bash
+apt update -y && wget -q https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/install.sh -O /usr/local/bin/install.sh && chmod +x /usr/local/bin/install.sh && /usr/local/bin/install.sh
 ```
-wget -O zi.sh https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/zi.sh; sudo chmod +x zi.sh; sudo ./zi.sh
+
+> Installer akan otomatis:
+> - Download binary terbaru sesuai arsitektur  
+> - Setup systemd service `zivpn.service`  
+> - Setup firewall UFW & NAT  
+> - Set default password "zi"  
+> - Membuat menu otomatis saat login  
+
+---
+
+## 🔧 Fix ZIVPN
+
+```bash
+wget -q https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/fix-zivpn.sh -O /usr/local/bin/fix-zivpn.sh && chmod +x /usr/local/bin/fix-zivpn.sh && /usr/local/bin/fix-zivpn.sh
 ```
 
-#### Installation ARM
+> Script ini akan:
+> - Memperbaiki service ZIVPN
+> - Reset firewall & NAT
+> - Membackup dan MeRestore Akun lama
+> - Memastikan server aman
+
+## 📦 Update Menu
+
+```bash
+wget -q https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/update.sh -O /usr/local/bin/update-manager && chmod +x /usr/local/bin/update-manager && /usr/local/bin/update-manager
 ```
-bash <(curl -fsSL https://raw.githubusercontent.com/zahidbd2/udp-zivpn/main/zi2.sh)
+
+> Installer akan otomatis:
+> - Setup systemd service New `zivpn.service`  
+> - Setup firewall UFW & NAT  
+> - Set default password "zi"  
+> - Membuat menu otomatis saat login  
+
+---
+
+## 🧼 Uninstall Menu
+
+```bash
+wget -q https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/uninstall.sh -O /usr/local/bin/uninstall-zivpn && chmod +x /usr/local/bin/uninstall-zivpn && /usr/local/bin/uninstall-zivpn
 ```
 
+> Uninstall akan:
+> - Stop dan disable systemd service  
+> - Hapus binary `/usr/local/bin/zivpn`  
+> - Hapus konfigurasi `/etc/zivpn/`  
+> - Hapus NAT / firewall rules  
 
-### Uninstall
+---
 
+## 🖥 Supported Architecture
+
+| Architecture | Binary |
+|-------------|--------|
+| **x86_64 (AMD64)** | udp-zivpn-linux-amd64 |
+| **ARM 32-bit** | udp-zivpn-linux-arm |
+| **ARM 64-bit (ARMv8)** | udp-zivpn-linux-arm64 |
+
+---
+
+## 📡 Default Configuration
+
+| Setting | Value |
+|---------|-------|
+| Default Password | `zi` |
+| Service Name | `zivpn.service` |
+| Config File | `/etc/zivpn/config.json` |
+| Binary Path | `/usr/local/bin/zivpn` |
+| Firewall / NAT | UDP 6000-19999 → 5667 |
+| Auto Menu Alias | `menu` → `/usr/local/bin/zivpn-manager` |
+
+---
+
+## 📱 Client Application
+
+| Platform | Link |
+|----------|------|
+| Android | [ZiVPN Tunnel](https://play.google.com/store/apps/details?id=com.zi.zivpn) |
+
+> App: **ZiVPN Tunnel**
+
+---
+
+## ⚙️ Systemd / Auto Restart
+
+- Service dijalankan dengan:
+```bash
+systemctl enable zivpn.service
+systemctl start zivpn.service
 ```
-sudo wget -O ziun.sh https://raw.githubusercontent.com/zahidbd2/udp-zivpn/main/uninstall.sh; sudo chmod +x ziun.sh; sudo ./ziun.sh
-```
+- Service akan **restart otomatis** jika mati
+- Tunggu **network-online.target** sebelum start service → mencegah error UDP bind  
 
-Client App available:
+---
 
-<a href="https://play.google.com/store/apps/details?id=com.zi.zivpn" target="_blank" rel="noreferrer">Download APP on Playstore</a>
-> ZIVPN
-                
-----
-Bash script by PowerMX
+## 📞 Support
+
+For custom build, business inquiry, reseller system, panel, or telegram bot please contact support.
+
+---
+
+### 🎉 Thank you for using **ZiVPN UDP Server**
