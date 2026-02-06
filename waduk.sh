@@ -29,6 +29,9 @@ apt install python3 -y
 apt install socat -y
 apt install netcat -y
 apt install ufw -y
+apt install telnet 
+
+
 # buat ubuntu 22 dan 25 
 apt install netcat-traditional -y
 apt install netcat-openbsd -y
@@ -120,6 +123,7 @@ CYANS="\033[38;2;35;235;195m"
 GOLD="\033[38;2;255;215;0m"
 RESET="\033[0m"
 # =========================[ FUNGSI UTILITAS ]=========================
+
 
 print_error() {
     echo -e "${ERROR} ${RED}$1${NC}"
@@ -426,7 +430,7 @@ SSL_SETUP() {
 
 FODER_SETUP() {
 local main_dirs=(
-        "/etc/xray" "/var/lib/luna" "/etc/lunatic" "/etc/limit"
+        "/etc/xray" "/var/lib/luna" "/etc/lunatic" "/etc/limit" "/etc/zivpn"
         "/etc/vmess" "/etc/vless" "/etc/trojan" "/etc/ssh"
     )
     
@@ -880,9 +884,23 @@ SWAPRAM_SETUP(){
     dd if=/dev/zero of=/swapfile bs=1M count=2048
     mkswap /swapfile
     chown root:root /swapfile
-    chmod 0600 /swapfile
+    chmod 600 /swapfile
     swapon /swapfile >/dev/null 2>&1
 
+# swap 1 Gb untuk ram 1
+    fallocate -l 1G /swapfile2
+    chmod 600 /swapfile2
+    mkswap /swapfile2
+    swapon /swapfile2
+    # turunkan tunning ke 10 Biar tidak Lemot
+    sysctl vm.swappiness=10
+    # permanenka tunning 
+    echo "vm.swappiness=10" >> /etc/sysctl.conf 
+    # kurangi chace pressure
+    sysctl vm.vfs_cache_pressure=50
+    # permanenkan chace pressure
+    echo "vm.vfs_cache_pressure=50" >> /etc/sysctl.conf
+         
     # Tambahkan swap ke fstab agar aktif saat boot
     sed -i '$ i\/swapfile swap swap defaults 0 0' /etc/fstab
 
@@ -990,7 +1008,7 @@ RESTART_SERVICE() {
     print_install "Restarting All Packet"
 
     # Restart service via init.d
-    for srv in nginx openvpn ssh dropbear fail2ban vnstat cron; do
+    for srv in nginx openvpn ssh dropbear vnstat cron; do
         /etc/init.d/$srv restart
     done
 
@@ -998,7 +1016,7 @@ RESTART_SERVICE() {
     systemctl restart haproxy
 
     # Enable semua service penting agar otomatis jalan saat boot
-    for srv in nginx xray rc-local dropbear openvpn cron haproxy netfilter-persistent ws fail2ban; do
+    for srv in nginx xray rc-local dropbear openvpn cron haproxy netfilter-persistent ws; do
         systemctl enable --now $srv
     done
 
@@ -1016,52 +1034,160 @@ RESTART_SERVICE() {
 }
 
 UDP_ZIVPN() {
-echo -e "Updating server"
-sudo apt-get update && apt-get upgrade -y
-systemctl stop zivpn.service 1> /dev/null 2> /dev/null
-echo -e "Downloading UDP Service"
-wget https://github.com/zahidbd2/udp-zivpn/releases/download/udp-zivpn_1.4.9/udp-zivpn-linux-amd64 -O /usr/local/bin/zivpn 1> /dev/null 2> /dev/null
-chmod +x /usr/local/bin/zivpn
-mkdir /etc/zivpn 1> /dev/null 2> /dev/null
+set -euo pipefail
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+LIGHT_BLUE='\033[1;36m'  # biru muda terang
+BOLD_WHITE='\033[1;37m'
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+LIGHT_GREEN='\033[1;32m'
+NC='\033[0m' # No Color
 
-# Download Config.json
-wget https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/config.json -O /etc/zivpn/config.json 1> /dev/null 2> /dev/null
+# LICENSE IP
+LICENSE_URL="https://raw.githubusercontent.com/yansyntax/permission/main/regist"
+LICENSE_INFO_FILE="/etc/zivpn/.license_info"
 
-echo "Generating cert files:"
-openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=US/ST=California/L=Los Angeles/O=Example Corp/OU=IT Department/CN=zivpn" -keyout "/etc/zivpn/zivpn.key" -out "/etc/zivpn/zivpn.crt"
-sysctl -w net.core.rmem_max=16777216 1> /dev/null 2> /dev/null
-sysctl -w net.core.wmem_max=16777216 1> /dev/null 2> /dev/null
-cat <<EOF > /etc/systemd/system/zivpn.service
+# VERIFIKASI LICENSE IP
+function verify_license() {
+echo "Verifying installation license..."
+local SERVER_IP
+SERVER_IP=$(cat /etc/zivpn/ip.txt)
+if [ -z "$SERVER_IP" ]; then
+echo -e "${RED}Failed to retrieve server IP. Please check your internet connection.${NC}"
+exit 1
+fi
+local license_data
+license_data=$(curl -s "$LICENSE_URL")
+if [ $? -ne 0 ] || [ -z "$license_data" ]; then
+echo -e "${RED}Gagal terhubung ke server lisensi. Mohon periksa koneksi internet Anda.${NC}"
+exit 1
+fi
+local license_entry
+license_entry=$(echo "$license_data" | grep -w "$SERVER_IP")
+if [ -z "$license_entry" ]; then
+echo -e "${RED}Verifikasi Lisensi Gagal! IP Anda tidak terdaftar. IP: ${SERVER_IP}${NC}"
+exit 1
+fi
+local client_name
+local expiry_date_str
+client_name=$(echo "$license_entry" | awk '{print $1}')
+expiry_date_str=$(echo "$license_entry" | awk '{print $2}')
+local expiry_timestamp
+expiry_timestamp=$(date -d "$expiry_date_str" +%s)
+local current_timestamp
+current_timestamp=$(date +%s)
+if [ "$expiry_timestamp" -le "$current_timestamp" ]; then
+echo -e "${RED}Verifikasi Lisensi Gagal! Lisensi untuk IP ${SERVER_IP} telah kedaluwarsa. Tanggal Kedaluwarsa: ${expiry_date_str}${NC}"
+exit 1
+fi
+echo -e "${LIGHT_GREEN}Verifikasi Lisensi Berhasil! Client: ${client_name}, IP: ${SERVER_IP}${NC}"
+sleep 2 # Brief pause to show the message
+mkdir -p /etc/zivpn
+echo "CLIENT_NAME=${client_name}" > "$LICENSE_INFO_FILE"
+echo "EXPIRY_DATE=${expiry_date_str}" >> "$LICENSE_INFO_FILE"
+}
+verify_license
+
+# Link Downlod Bin amd64
+BIN_URL="https://github.com/arivpnstores/udp-zivpn/releases/download/zahidbd2/udp-zivpn-linux-amd64"
+
+# Link Download config.json
+CFG_URL="https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/config.json"
+
+# Path Bin amd64
+BIN_PATH="/usr/local/bin/zivpn"
+
+# Directory Config udp zivpn
+CFG_DIR="/etc/zivpn"
+CFG_PATH="${CFG_DIR}/config.json"
+KEY_PATH="${CFG_DIR}/zivpn.key"
+CRT_PATH="${CFG_DIR}/zivpn.crt"
+
+# Port udp # Ufw / Dnat
+UDP_LISTEN_PORT="5667"
+DNAT_FROM_MIN="6000"
+DNAT_FROM_MAX="19999"
+
+# UPDATE SERVR DAN BUAT CERT SSL HUSUS UDP ZIVPN
+echo "[1/9] Update server"
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get upgrade -y
+echo "[2/9] Stop service if exists"
+systemctl stop zivpn.service 2>/dev/null || true
+echo "[3/9] Install/Update binary & config"
+mkdir -p "${CFG_DIR}"
+wget -qO "${BIN_PATH}" "${BIN_URL}"
+chmod +x "${BIN_PATH}"
+wget -qO "${CFG_PATH}" "${CFG_URL}"
+echo "[4/9] Generate cert files (if missing)"
+if [[ ! -f "${KEY_PATH}" || ! -f "${CRT_PATH}" ]]; then
+openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+-subj "/C=US/ST=California/L=Los Angeles/O=Example Corp/OU=IT Department/CN=zivpn" \
+-keyout "${KEY_PATH}" -out "${CRT_PATH}"
+fi
+echo "[5/9] Persist sysctl (so it survives reboot)"
+cat >/etc/sysctl.d/99-zivpn-udp.conf <<EOF
+net.core.rmem_max=16777216
+net.core.wmem_max=16777216
+EOF
+sysctl --system >/dev/null
+echo "[6/9] Force password config to [\"zi\"]"
+sed -i -E 's/"config"[[:space:]]*:[[:space:]]*\[[^]]*\]/"config": ["zi"]/g' "${CFG_PATH}"
+
+# BUAT SERVICE UDP ZIVPN
+echo "[7/9] Create systemd service (wait network online)"
+cat >/etc/systemd/system/zivpn.service <<EOF
 [Unit]
 Description=zivpn VPN Server
-After=network.target
-
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/etc/zivpn
-ExecStart=/usr/local/bin/zivpn server -c /etc/zivpn/config.json
-Restart=always
+WorkingDirectory=${CFG_DIR}
+ExecStartPre=/bin/sh -c 'test -s "${CFG_PATH}" && test -s "${KEY_PATH}" && test -s "${CRT_PATH}"'
+ExecStart=${BIN_PATH} server -c ${CFG_PATH}
+Restart=on-failure
 RestartSec=3
 Environment=ZIVPN_LOG_LEVEL=info
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
 NoNewPrivileges=true
-
 [Install]
 WantedBy=multi-user.target
 EOF
+systemctl daemon-reload
+systemctl enable zivpn.service >/dev/null
 
-# Restart service
-systemctl enable zivpn.service
-systemctl start zivpn.service
+# AKTIFKAN IPTABLES DAN NAT
+echo "[8/9] Persist NAT rule across reboot (iptables-persistent)"
+apt-get install -y iptables-persistent >/dev/null
+DEF_IF="$(ip -4 route ls | awk '/default/ {print $5; exit}')"
+if [[ -z "${DEF_IF}" ]]; then
+echo "❌ Gagal mendeteksi interface default. Cek: ip -4 route"
+exit 1
+fi
+if ! iptables -t nat -C PREROUTING -i "${DEF_IF}" -p udp --dport "${DNAT_FROM_MIN}:${DNAT_FROM_MAX}" -j DNAT --to-destination ":${UDP_LISTEN_PORT}" 2>/dev/null; then
+iptables -t nat -A PREROUTING -i "${DEF_IF}" -p udp --dport "${DNAT_FROM_MIN}:${DNAT_FROM_MAX}" -j DNAT --to-destination ":${UDP_LISTEN_PORT}"
+fi
+iptables-save > /etc/iptables/rules.v4
 
+# AKTIFKAN UFW / FIREWAL 
+echo "[9/9] UFW rules (optional) + start service"
+if command -v ufw >/dev/null 2>&1; then
+ufw allow "${DNAT_FROM_MIN}:${DNAT_FROM_MAX}/udp" >/dev/null || true
+ufw allow "${UDP_LISTEN_PORT}/udp" >/dev/null || true
+fi
+systemctl restart zivpn.service
+echo ""
+echo "✅ ZIVPN UDP Installed & reboot-safe"
+echo "- Service: systemctl status zivpn --no-pager"
+echo "- Interface detected: ${DEF_IF}"
+echo "- DNAT UDP ${DNAT_FROM_MIN}-${DNAT_FROM_MAX} -> :${UDP_LISTEN_PORT}"
 
-iptables -t nat -A PREROUTING -i $(ip -4 route ls|grep default|grep -Po '(?<=dev )(\S+)'|head -1) -p udp --dport 6000:19999 -j DNAT --to-destination :5667
-ufw allow 6000:19999/udp
-ufw allow 5667/udp
-rm zi.* 1> /dev/null 2> /dev/null
-echo -e "ZIVPN UDP Installed"
 }
 
 MENU_SETUP() {
@@ -1075,26 +1201,24 @@ MENU_SETUP() {
     unzip LUNAVPN
     chmod +x menu/*
     mv menu/* /usr/local/sbin
-    dos2unix /usr/local/sbin/welcome
+    dos2unix /usr/local/sbin/.welcome
     
     rm -rf menu
-    rm -rf menu.zip    
-    # Bersihkan
-    rm -rf menu LUNAVPN
-
+    rm -rf LUNAVPN
+    alias menu='/usr/local/sbin/.menu'
     print_success "Menu berhasil dipasang"
 }
 
 BASHRC_PROFILE() {
 clear
-cat >/root/.profile <<EOF
+cat >/root/.yanbhoikfost <<EOF
 if [ "$BASH" ]; then
 if [ -f ~/.bashrc ]; then
 . ~/.bashrc
 fi
 fi
 mesg n || true
-welcome
+.welcome
 EOF
 }
 
@@ -1367,6 +1491,7 @@ rm -rf /root/LICENSE
 rm -rf /root/README.md
 rm -rf /root/domain
 rm -rf /root/drop*
+rm -rf /root/udp
 # ==========================================
 # Pesan Sukses
 # ==========================================
