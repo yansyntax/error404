@@ -37,5 +37,4 @@ else
     unzip -o "$FILE"
     install -m 755 xray /usr/local/bin/xray
 fi
-
-echo "[INFO] Xray berhasil dipasang"
+sleep 1
