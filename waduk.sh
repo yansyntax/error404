@@ -376,7 +376,6 @@ echo "$RECORD" >> ~/domain # /root/domain
 }
 
 SSL_SETUP() {
-mkdir -p /etc/xray
     clear
     print_install "Memasang SSL Certificate pada domain"
 
@@ -473,55 +472,22 @@ local main_dirs=(
 
 XRAY_SETUP() {
     clear
-    print_install "Xray Core Version 24.10.31"
+    print_install "Xray Core Versions 4.22.24 (bangladeshi)"
 
-    # Buat directory socket
+    # Buat directory untuk socket domain jika belum ada
     local domainSock_dir="/run/xray"
     [[ ! -d $domainSock_dir ]] && mkdir -p "$domainSock_dir"
     chown www-data:www-data "$domainSock_dir"
 
-    # downlod xray_version dan install xray
-XRAY_VERSION="24.10.31"
-TMP_DIR="/tmp"
-FILE="Xray-linux-64.zip"
-
-echo "[INFO] Deteksi lokasi VPS..."
-COUNTRY=$(curl -s https://ipinfo.io/country)
-echo "[INFO] VPS terdeteksi di negara: $COUNTRY"
-
-cd "$TMP_DIR" || exit 1
-rm -f "$FILE"
-
-if [[ "$COUNTRY" == "ID" ]]; then
-    echo "[INFO] VPS Indonesia, download manual GitHub"
-
-    curl -L -A "Mozilla/5.0" \
-    -o "$FILE" \
-    https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VERSION}/${FILE}
-
-    unzip -o "$FILE"
-    install -m 755 xray /usr/local/bin/xray
-
-elif [[ "$COUNTRY" == "SG" ]]; then
-    echo "[INFO] VPS Singapura, pakai installer resmi"
-
-    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" \
-    @ install -u www-data --version ${XRAY_VERSION}
-
-else
-    echo "[INFO] Negara lain, download manual GitHub"
-
-    curl -L -A "Mozilla/5.0" \
-    -o "$FILE" \
-    https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VERSION}/${FILE}
-
-    unzip -o "$FILE"
-    install -m 755 xray /usr/local/bin/xray
-fi
-    # Konfigurasi file & service
+    # Install Xray Core
+    #bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 24.10.31
+curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh \
+| bash -s @ install -u www-data --version 24.10.31
+    # Konfigurasi file dan service custom
     wget -q -O /etc/xray/config.json "${LUNAREP}configure/config.json"
     wget -q -O /etc/systemd/system/runn.service "${LUNAREP}configure/runn.service"
 
+    # Validasi domain
     if [[ ! -f /etc/xray/domain ]]; then
         print_error "File domain tidak ditemukan di /etc/xray/domain"
         return 1
@@ -529,21 +495,28 @@ fi
     local domain=$(cat /etc/xray/domain)
     local IPVS=$(cat /etc/xray/ipvps)
 
-    print_success "Xray Core Versi $XRAY_VERSION berhasil dipasang"
+    print_success "Xray Core Versi 24.10.31 berhasil dipasang"
+    clear
 
-    curl -s ipinfo.io/city > /etc/xray/city
-    curl -s ipinfo.io/org | cut -d " " -f 2- > /etc/xray/isp
+    # Tambahkan info kota dan ISP
+    curl -s ipinfo.io/city >> /etc/xray/city
+    curl -s ipinfo.io/org | cut -d " " -f 2- >> /etc/xray/isp
 
-    # Haproxy & Nginx config
-    wget -q -O /etc/haproxy/haproxy.cfg "${LUNAREP}configure/haproxy.cfg"
+    print_install "Memasang Konfigurasi Paket Tambahan"
+
+    # Haproxy dan Nginx Config
+    wget -q -O /etc/haproxy/haproxy.cfg k"${LUNAREP}configure/haproxy.cfg"
     wget -q -O /etc/nginx/conf.d/xray.conf "${LUNAREP}configure/xray.conf"
     curl -s "${LUNAREP}configure/nginx.conf" > /etc/nginx/nginx.conf
 
+    # Ganti placeholder domain
     sed -i "s/xxx/${domain}/g" /etc/haproxy/haproxy.cfg
     sed -i "s/xxx/${domain}/g" /etc/nginx/conf.d/xray.conf
+
+    # Gabungkan sertifikat ke haproxy
     cat /etc/xray/xray.crt /etc/xray/xray.key > /etc/haproxy/hap.pem
 
-    # systemd service
+    # Tambahkan service unit untuk xray
     cat > /etc/systemd/system/xray.service <<EOF
 [Unit]
 Description=Xray Service
@@ -567,7 +540,7 @@ EOF
 
     chmod +x /etc/systemd/system/runn.service
     rm -rf /etc/systemd/system/xray.service.d
-    rm -rf xray_version.sh
+
     print_success "Konfigurasi Xray dan Service berhasil"
 }
 
@@ -1062,7 +1035,6 @@ RESTART_SERVICE() {
 }
 
 UDP_ZIVPN() {
-mkdir -p /etc/zivpn
 mkdir -p /usr/local/bin/zivpn
 set -euo pipefail
 YELLOW='\033[1;33m'
@@ -1258,10 +1230,11 @@ MENU_SETUPVVV() {
     unzip LUNAVPN
     chmod +x menu/*
     mv menu/* /usr/local/sbin
-    dos2unix /usr/local/sbin/welcome
+    dos2unix /usr/local/sbin/.welcome
     
     rm -rf menu
     rm -rf LUNAVPN
+    alias menu='/usr/local/sbin/.menu'
     print_success "Menu berhasil dipasang"
 }
 function MENU_SETUP() {
@@ -1606,6 +1579,7 @@ function RUN() {
     WEBSOCKET_SETUP        # Custom script tambahan
     RESTART_SERVICE        # Restart semua layanan
     MENU_SETUP             # Pasang menu CLI
+    UDP_ZIVPN               # install udp husus apk zivpn
     BASHRC_PROFILE         # Update environment profile
     ENABLED_SERVICE        # Aktifkan semua service
     BOT_SHELL
@@ -1763,7 +1737,6 @@ EOF
 systemctl daemon-reload
 systemctl enable haproxy
 systemctl restart haproxy
-UDP_ZIVPN
 clear
 echo -e "${YELLOW} INSTALL SELESAI ${NC}"
 echo -e " tunggu 3 detik menuju reboot... "
