@@ -1,3 +1,5 @@
+#!/bin/bash
+clear
 XRAY_VERSION="24.10.31"
 TMP_DIR="/tmp"
 FILE="Xray-linux-64.zip"
