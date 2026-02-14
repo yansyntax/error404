@@ -1,6 +1,4 @@
-# Decrypted by LT | FUSCATOR
-# Github- https://github.com/LunaticTunnel/Absurd
-
+#!/usr/bin/env bash
 chattr -i /etc/zivpn/api_auth.key
 echo -e "Backup Data ZiVPN Old..."
 [ -d /etc/zivpn-backup ] && rm -rf /etc/zivpn-backup
