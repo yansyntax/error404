@@ -1,3 +1,4 @@
+#!/bin/bash
 # Decrypted by LT | FUSCATOR
 # Github- https://github.com/LunaticTunnel/Absurd
 
