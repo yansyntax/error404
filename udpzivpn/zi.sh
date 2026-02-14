@@ -12,45 +12,7 @@ LIGHT_GREEN='\033[1;32m'
 NC='\033[0m' # No Color
 LICENSE_URL="https://raw.githubusercontent.com/yansyntax/permission/main/regist"
 LICENSE_INFO_FILE="/etc/zivpn/.license_info"
-function verify_license() {
-echo "Verifying installation license..."
-local SERVER_IP
-SERVER_IP=$(cat /etc/zivpn/ip.txt)
-if [ -z "$SERVER_IP" ]; then
-echo -e "${RED}Failed to retrieve server IP. Please check your internet connection.${NC}"
-exit 1
-fi
-local license_data
-license_data=$(curl -s "$LICENSE_URL")
-if [ $? -ne 0 ] || [ -z "$license_data" ]; then
-echo -e "${RED}Gagal terhubung ke server lisensi. Mohon periksa koneksi internet Anda.${NC}"
-exit 1
-fi
-local license_entry
-license_entry=$(echo "$license_data" | grep -w "$SERVER_IP")
-if [ -z "$license_entry" ]; then
-echo -e "${RED}Verifikasi Lisensi Gagal! IP Anda tidak terdaftar. IP: ${SERVER_IP}${NC}"
-exit 1
-fi
-local client_name
-local expiry_date_str
-client_name=$(echo "$license_entry" | awk '{print $1}')
-expiry_date_str=$(echo "$license_entry" | awk '{print $2}')
-local expiry_timestamp
-expiry_timestamp=$(date -d "$expiry_date_str" +%s)
-local current_timestamp
-current_timestamp=$(date +%s)
-if [ "$expiry_timestamp" -le "$current_timestamp" ]; then
-echo -e "${RED}Verifikasi Lisensi Gagal! Lisensi untuk IP ${SERVER_IP} telah kedaluwarsa. Tanggal Kedaluwarsa: ${expiry_date_str}${NC}"
-exit 1
-fi
-echo -e "${LIGHT_GREEN}Verifikasi Lisensi Berhasil! Client: ${client_name}, IP: ${SERVER_IP}${NC}"
-sleep 2 # Brief pause to show the message
-mkdir -p /etc/zivpn
-echo "CLIENT_NAME=${client_name}" > "$LICENSE_INFO_FILE"
-echo "EXPIRY_DATE=${expiry_date_str}" >> "$LICENSE_INFO_FILE"
-}
-verify_license
+
 BIN_URL="https://github.com/arivpnstores/udp-zivpn/releases/download/zahidbd2/udp-zivpn-linux-amd64"
 CFG_URL="https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/config.json"
 BIN_PATH="/usr/local/bin/zivpn"
