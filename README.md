@@ -5,9 +5,7 @@
 <pre><code>apt update && apt upgrade -y && update-grub && sleep 2 && reboot</pre></code>
 
 ### INSTALL SCRIPT 
-<pre><code>wget -q curl -fsSL https://raw.githubusercontent.com/yansyntax/error404/main/waduk.sh -o waduk.sh \
-&& chmod +x waduk.sh \
-&& ./waduk.sh
+<pre><code>curl -fsSL https://raw.githubusercontent.com/yansyntax/error404/main/waduk.sh-o waduk.sh && chmod +x waduk.sh && ./waduk.sh
 </code></pre>
 
 ### UDP ZIVPN
