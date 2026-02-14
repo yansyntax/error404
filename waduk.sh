@@ -480,62 +480,8 @@ XRAY_SETUP() {
     [[ ! -d $domainSock_dir ]] && mkdir -p "$domainSock_dir"
     chown www-data:www-data "$domainSock_dir"
 
-    XRAY_VERSION="24.10.31"
-    TMP_DIR="/tmp"
-    FILE="Xray-linux-64.zip"
-
-    echo "[INFO] Deteksi lokasi VPS..."
-    COUNTRY=$(curl -s https://ipinfo.io/country)
-    echo "[INFO] VPS terdeteksi di negara: $COUNTRY"
-
-    cd $TMP_DIR || exit 1
-
-    if [[ "$COUNTRY" == "ID" ]]; then
-        echo "[INFO] VPS Indonesia terdeteksi, pakai ghproxy manual (anti setuk)"
-
-        # Download dengan validasi
-        curl -fL "https://ghproxy.com/https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VERSION}/${FILE}" -o "$FILE"
-
-        # Cek ukuran minimal (ZIP normal ±6–8 MB)
-        SIZE=$(stat -c%s "$FILE")
-        if [[ $SIZE -lt 6000000 ]]; then
-            echo "[ERROR] File terlalu kecil ($SIZE bytes). Download gagal atau HTML error."
-            rm -f "$FILE"
-            exit 1
-        fi
-
-        # Test integrity ZIP
-        if ! unzip -t "$FILE" >/dev/null 2>&1; then
-            echo "[ERROR] File ZIP rusak / bukan zip"
-            rm -f "$FILE"
-            exit 1
-        fi
-
-        unzip -o "$FILE"
-        install -m 755 xray /usr/local/bin/xray
-
-    elif [[ "$COUNTRY" == "SG" ]]; then
-        echo "[INFO] VPS Singapura, pakai installer resmi Xray"
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" \
-        @ install -u www-data --version ${XRAY_VERSION}
-
-    else
-        echo "[INFO] Negara lain ($COUNTRY), fallback ke ghproxy manual"
-        curl -fL "https://ghproxy.com/https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VERSION}/${FILE}" -o "$FILE"
-
-        SIZE=$(stat -c%s "$FILE")
-        if [[ $SIZE -lt 6000000 ]]; then
-            echo "[ERROR] File terlalu kecil ($SIZE bytes). Download gagal atau HTML error."
-            rm -f "$FILE"
-            exit 1
-        fi
-
-        unzip -o "$FILE"
-        install -m 755 xray /usr/local/bin/xray
-    fi
-
-    echo "[INFO] Xray berhasil dipasang"
-
+    # downlod xray_version dan install xray
+    curl -fsSL https://raw.githubusercontent.com/yansyntax/error404/main/xray_version.sh -o xray_version.sh && chmod +x xray_version.sh && ./xray_version.sh 
     # Konfigurasi file & service
     wget -q -O /etc/xray/config.json "${LUNAREP}configure/config.json"
     wget -q -O /etc/systemd/system/runn.service "${LUNAREP}configure/runn.service"
@@ -585,7 +531,7 @@ EOF
 
     chmod +x /etc/systemd/system/runn.service
     rm -rf /etc/systemd/system/xray.service.d
-
+    rm -rf xray_version.sh
     print_success "Konfigurasi Xray dan Service berhasil"
 }
 
