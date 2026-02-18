@@ -1035,7 +1035,6 @@ RESTART_SERVICE() {
 }
 
 UDP_ZIVPN() {
-mkdir -p /usr/local/bin/zivpn
 set -euo pipefail
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
