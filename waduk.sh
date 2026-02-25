@@ -41,7 +41,7 @@ IPVPS=$(curl -sS ipv4.icanhazip.com)
 export IP=$( curl -sS icanhazip.com )
 
 # GIT REPO
-LUNAREP="https://raw.githubusercontent.com/yansyntax/error404/main/"
+LUNAREP="https://raw.githubusercontent.com/xDereVpn/error404/main/"
 
 function ADD_CEEF() {
 EMAILCF="newvpnlunatix293@gmail.com"
@@ -307,7 +307,7 @@ TOOLS_SETUP() {
     # Bersih-bersih dan setting iptables-persistent
     sudo apt-get clean all
     sudo apt-get autoremove -y
-    sudo apt-get remove --purge -y exim4 ufw firewalld
+    sudo apt-get remove --purge -y exim4 ufw firewall
     sudo apt-get install -y debconf-utils
 
     echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
@@ -394,7 +394,7 @@ IPVPS=$(curl -s ipv4.icanhazip.com)
 DOMAIN_MENU() {
 clear
 echo "=============================="
-echo -e "\e[93;1m    DIWAN VPN TUNNELING  \e[0m "
+echo -e "\e[93;1m   XDERE VPN   \e[0m "
 echo "=============================="
 echo "         SETUP DOMAIN "
 echo "=============================="
@@ -659,7 +659,7 @@ PW_DEFAULT() {
     print_install "Mengatur Password Policy dan Konfigurasi SSH"
 
     # Download file konfigurasi password PAM
-    local password_url="https://raw.githubusercontent.com/yansyntax/error404/main/configure/password"
+    local password_url="https://raw.githubusercontent.com/xDereVpn/error404/main/configure/password"
     wget -q -O /etc/pam.d/common-password "$password_url"
     chmod 644 /etc/pam.d/common-password
 
@@ -735,7 +735,7 @@ LIMIT_HANDLER() {
     print_install "Memasang Service Limit Quota"
 
     # Download dan jalankan install.sh untuk setup awal
-    wget https://raw.githubusercontent.com/yansyntax/error404/main/LimitHandler/install.sh && chmod +x install.sh && ./install.sh
+    wget https://raw.githubusercontent.com/xDereVpn/error404/main/LimitHandler/install.sh && chmod +x install.sh && ./install.sh
 
     # Download file limit-ip ke /usr/bin/
     cd
@@ -1207,7 +1207,7 @@ apt install -y unzip dos2unix openssl gzip -y
 clear
 echo -e "\033[32;1m Download feature.... \033[0m"
 
-wget https://raw.githubusercontent.com/yansyntax/error404/main/feature/LUNAVPN
+wget https://raw.githubusercontent.com/xDereVpn/error404/main/feature/LUNAVPN
 unzip LUNAVPN >/dev/null 2>&1
 
 chmod +x menu/*
@@ -1490,7 +1490,7 @@ ENABLED_SERVICE() {
 }
 BOT_SHELL() {
    echo -e "\e[92;1m install shellbot \e[0m"
-   wget https://raw.githubusercontent.com/yansyntax/error404/main/LTbotVPN/SHELLBOT
+   wget https://raw.githubusercontent.com/xDereVpn/error404/main/LTbotVPN/SHELLBOT
     unzip SHELLBOT
     mv LTBOTVPN /usr/bin
     chmod +x /usr/bin/LTBOTVPN/*
@@ -1764,10 +1764,11 @@ systemctl enable haproxy
 systemctl restart haproxy
 
 function UDP_ZIVPN() {
+
 echo -e "\033[31;1m ============================ \033[0m"
 echo -e "\033[32;1m DOWNLOAD UDP ZIVPN \033[0m"
 echo -e "\033[31;1m ============================ \033[0m"
-sleep 3
+apt install ufw -y
 clear
 echo -e "${CYAN} ============================ ${NC}"
 echo -e "${YELLOW} buat apikey 6 karakter ${NC}"
@@ -1791,14 +1792,14 @@ LIGHT_GREEN='\033[1;32m'
 NC='\033[0m' # No Color
 
 # LICENSE IP
-LICENSE_URL="https://raw.githubusercontent.com/yansyntax/permission/main/regist"
+LICENSE_URL="https://raw.githubusercontent.com/xDereVpn/permission/main/regist"
 LICENSE_INFO_FILE="/etc/zivpn/.license_info"
 
 # Link Downlod Bin amd64
 BIN_URL="https://github.com/arivpnstores/udp-zivpn/releases/download/zahidbd2/udp-zivpn-linux-amd64"
 
 # Link Download config.json
-CFG_URL="https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/config.json"
+CFG_URL="https://raw.githubusercontent.com/xDereVpn/error404/main/udpzivpn/config.json"
 
 # Path Bin amd64
 BIN_PATH="/usr/local/bin/"
@@ -1922,9 +1923,9 @@ echo -e "${CYAN} ============================ ${NC}"
 echo -e "${YELLOW} DOWNLOAD zivpn-manger  ${NC}"
 echo -e "${CYAN} ============================ ${NC}"
 mkdir -p /usr/local/bin
-wget -q https://raw.githubusercontent.com/yansyntax/error404/main/udpzivpn/zivpn-manager -O /usr/local/bin/zivpn-manager
+wget -q https://raw.githubusercontent.com/xDereVpn/error404/main/udpzivpn/zivpn-manager -O /usr/local/bin/zivpn-manager
 chmod +x /usr/local/bin/zivpn-manager
-/usr/local/bin/zivpn-manager
+bash /usr/local/bin/zivpn-manager
 
 }
 UDP_ZIVPN
