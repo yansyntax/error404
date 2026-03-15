@@ -15,11 +15,15 @@ echo "✅ Downloading kill_triall.py..."
 wget -O /usr/bin/kill_triall.py https://raw.githubusercontent.com/yansyntax/error404/main/LimitHandler/kill_triall.py
 wget -O /usr/bin/check_triall_expired.py https://raw.githubusercontent.com/yansyntax/error404/main/LimitHandler/check_triall_expired.py
 
+echo "✅ Downloading shoot.sh..."
+wget -O /usr/bin/shoot-dell.sh https://raw.githubusercontent.com/yansyntax/error404/main/LimitHandler/shoot-dell.sh
+
 chmod +x /usr/bin/monitor_quota.py
 chmod +x /usr/bin/monitor_autokill.py
 chmod +x /usr/bin/autodelete.py
 chmod +x /usr/bin/kill_triall.py
 chmod +x /usr/bin/check_triall_expired.py
+chmod +x /usr/bin/shoot-dell.sh
 
 touch /var/log/lunatic_quota_monitor.log
 chmod 644 /var/log/lunatic_quota_monitor.log
@@ -88,6 +92,18 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
+cat > /etc/systemd/system/shoot-dell.service <<-EOF
+[Unit]
+Description=Trial Monitor Lunatic
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/shoot-dell.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
 ############################################
 # AKTIFKAN SEMUA SERVICE
 ############################################
@@ -107,5 +123,16 @@ systemctl restart monitor-autokill
 systemctl enable autodelete.timer
 systemctl start autodelete.timer
 
+# SHOOT DELL
+systemctl enable shoot-dell
+systemctl start shoot-dell
+
+clear
 echo "✅ Instalasi selesai!"
-echo "🔍 Cek timer dengan: systemctl list-timers | grep autodelete"
+echo -e "\e[93;1m ======================================= \e[0m"
+echo -e "\e[95;1m Auto Kill Triall    :\e[92;1m install succes \e[0m"
+echo -e "\e[95;1m Autokill multilogin :\e[92;1m install succes \e[0m"
+echo -e "\e[95;1m Auto Delete expire  :\e[92;1m install succes \e[0m"
+echo -e "\e[95;1m Auto Limit quota    :\e[92;1m install succes \e[0m"
+echo -e "\e[93;1m ======================================= \e[0m"
+sleep 3

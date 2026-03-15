@@ -1,7 +1,7 @@
 #!/bin/bash
 function send_log(){
-CHATID=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 3)
-KEY=$(grep -E "^#bot# " "/etc/bot/.bot.db" | cut -d ' ' -f 2)
+CHATID=$(cat /etc/lunatic/bot/notif/id)
+KEY=$(cat /etc/lunatic/bot/notif/key)
 TIME="10"
 URL="https://api.telegram.org/bot$KEY/sendMessage"
 TEXT="
@@ -18,11 +18,11 @@ function vmip(){
 
 echo -n > /var/log/xray/access.log
 sleep 440
-data=( `ls /etc/lunatic/limit/vmess/ip`);
+data=( `ls /etc/lunatic/vmess/ip`);
 
     for user in "${data[@]}"
     do
-        iplimit=$(cat /etc/lunatic/limit/vmess/ip/$user)
+        iplimit=$(cat /etc/lunatic/vmess/ip/$user)
         ehh=$(cat /var/log/xray/access.log | grep "$user" | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | sort | uniq);
         cekcek=$(echo -e "$ehh" | wc -l);
         if [[ $cekcek -gt $iplimit ]]; then
@@ -31,7 +31,10 @@ data=( `ls /etc/lunatic/limit/vmess/ip`);
                   sed -i "/^### $user $exp/d" /etc/vmess/.vmess.db
                   systemctl restart xray >> /dev/null 2>&1
                   jum2=$(cat /tmp/ipvmess.txt | wc -l)
-                  rm -rf /etc/lunatic/limit/vmess/ip/$user
+                  rm -rf /etc/lunatic/vmess/ip/$user
+                  rm -rf /etc/lunatic/vmess/usage/$user
+                  rm -rf /etc/lunatic/vmess/detail/$user.txt     
+                  rm -rf /var/www/html/$vme-user.txt                           
                   send_log
                 else
             echo ""
@@ -43,11 +46,11 @@ function vlip(){
 #LIMITVLESSIP
 echo -n > /var/log/xray/access.log
 sleep 440
-data=( `ls /etc/lunatic/limit/vless/ip`);
+data=( `ls /etc/lunatic/vless/ip`);
 
     for user in "${data[@]}"
     do
-        iplimit=$(cat /etc/lunatic/limit/vless/ip/$user)
+        iplimit=$(cat /etc/lunatic/vless/ip/$user)
         ehh=$(cat /var/log/xray/access.log | grep "$user" | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | sort | uniq);
         cekcek=$(echo -e "$ehh" | wc -l);
         if [[ $cekcek -gt $iplimit ]]; then
@@ -56,7 +59,10 @@ data=( `ls /etc/lunatic/limit/vless/ip`);
                   sed -i "/^### $user $exp/d" /etc/vless/.vless.db
                   systemctl restart xray >> /dev/null 2>&1
                   jum2=$(cat /tmp/ipvless.txt | wc -l)
-                  rm -rf /etc/lunatic/limit/vless/ip/$user
+                  rm -rf /etc/lunatic/vless/ip/$user
+                  rm -rf /etc/lunatic/vless/usage/$user
+                  rm -rf /etc/lunatic/vless/detail/$user.txt     
+                  rm -rf /var/www/html/$vle-user.txt                             
                   send_log
                 else
             echo ""
@@ -68,11 +74,11 @@ function trip(){
 #LIMITIPTROJAN
 echo -n > /var/log/xray/access.log
 sleep 440
-data=( `ls /etc/lunatic/limit/trojan/ip`);
+data=( `ls /etc/lunatic/trojan/ip`);
 
     for user in "${data[@]}"
     do
-        iplimit=$(cat /etc/lunatic/limit/trojan/ip/$user)
+        iplimit=$(cat /etc/lunatic/trojan/ip/$user)
         ehh=$(cat /var/log/xray/access.log | grep "$user" | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | sort | uniq);
         cekcek=$(echo -e "$ehh" | wc -l);
         if [[ $cekcek -gt $iplimit ]]; then
@@ -81,7 +87,10 @@ data=( `ls /etc/lunatic/limit/trojan/ip`);
                   sed -i "/^### $user $exp/d" /etc/trojan/.trojan.db
                   systemctl restart xray >> /dev/null 2>&1
                   jum2=$(cat /tmp/iptrojan.txt | wc -l)
-                  rm -rf /etc/lunatic/limit/trojan/ip/$user
+                  rm -rf /etc/lunatic/trojan/ip/$user
+                  rm -rf /etc/lunatic/trojan/usage/$user
+                  rm -rf /etc/lunatic/trojan/detail/$user.txt     
+                  rm -rf /var/www/html/$tro-user.txt                                                                
                   send_log
                 else
             echo ""

@@ -1,19 +1,9 @@
 #!/usr/bin/env python3
 
-
-
-##### BASE : LUNATIC TUNNELING x GPT #####
-
-# Lunatic Tunneling | Dian Permana
-# Saguling | Jawa Barat | Bandung Barat | Indonesia
-# Contact | wa.me/6283197765857
-
-
-
-from datetime import datetime
+import os
 import subprocess
+from datetime import datetime
 
-# Semua mode dan DB path
 db_list = {
     "vmess": "/etc/lunatic/vmess/.vmess.db",
     "vless": "/etc/lunatic/vless/.vless.db",
@@ -22,23 +12,74 @@ db_list = {
 }
 
 kill_script = "/usr/bin/kill_triall.py"
-today = datetime.now().strftime("%Y-%m-%d")
+
+
+def ssh_expired(user):
+    try:
+        out = subprocess.check_output(["chage", "-l", user]).decode()
+
+        for line in out.split("\n"):
+            if "Account expires" in line:
+
+                if "never" in line.lower():
+                    return False
+
+                exp = line.split(":")[1].strip()
+                exp_date = datetime.strptime(exp, "%b %d, %Y")
+
+                return exp_date <= datetime.now()
+
+    except:
+        return False
+
 
 for mode, db_path in db_list.items():
+
     if not os.path.exists(db_path):
         continue
+
     with open(db_path) as f:
+
         for line in f:
-            if line.startswith("###") or line.startswith("#ssh#"):
-                parts = line.strip().split()
+
+            line = line.strip()
+
+            if not line:
+                continue
+
+            parts = line.split()
+
+            try:
+
                 if mode == "ssh":
+
+                    if not line.startswith("#ssh#"):
+                        continue
+
+                    if len(parts) < 2:
+                        continue
+
                     username = parts[1]
-                    exp = parts[4]
+
+                    if username.startswith("/"):
+                        continue
+
+                    if ssh_expired(username):
+                        subprocess.run(["python3", kill_script, "ssh_dell", username])
+
                 else:
+
+                    if not line.startswith("###"):
+                        continue
+
+                    if len(parts) < 3:
+                        continue
+
                     username = parts[1]
                     exp = parts[2]
-                try:
+
                     if datetime.strptime(exp, "%Y-%m-%d") <= datetime.now():
                         subprocess.run(["python3", kill_script, f"{mode}_dell", username])
-                except Exception:
-                    continue
+
+            except:
+                continue
